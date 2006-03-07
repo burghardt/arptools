@@ -1,8 +1,8 @@
 /*
-   ARP Discover Tool - Ethernet scanner based on ARP protocol
+   ARP Flooder - Ethernet flooder based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
 
-   $Id: arpdiscover.c,v 1.3 2006-03-07 16:25:42 kb Exp $
+   $Id: arpflood.c,v 1.1 2006-03-07 16:25:42 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -81,20 +81,15 @@ int main (int argc, char **argv) {
     u_int32_t packet_size;
     const unsigned char *pcap_packet = NULL;
     pid_t pid;
-    int i, status, amount;
+    int i, status;
     
-    if (argc < 3) {
-	fprintf(stderr, "Usage: %s 1st_dst_ip amount [interface]\n", argv[0]);
+    if (argc < 2) {
+	fprintf(stderr, "Usage: %s dst_ip [interface]\n", argv[0]);
 	exit(EXIT_FAILURE);
     }
     
-    if ((amount = atoi(argv[2])) < 1) {
-	fprintf(stderr, "amount have to be positive integer\n");
-	exit(EXIT_FAILURE);
-    }    
-
-    if (argc > 3)
-	interface = argv[3];
+    if (argc > 2)
+	interface = argv[2];
 
     if (interface == NULL)
 	interface = pcap_lookupdev(pcap_error_buffer);
@@ -148,18 +143,13 @@ int main (int argc, char **argv) {
             exit(EXIT_FAILURE);
 	case 0:
 	    alarm(10); /* timeout if no packet arrives */
-	    for (i = 0; ; ++i) {
+	    for (;;) {
 		pcap_packet = pcap_next(pcap_handle, &packet_header);
 	    
-		printf("received arp packet %i bytes, ", packet_header.len);
-	    
 		if (pcap_packet[20] == 0 && pcap_packet[21] == 2) {
-		    memcpy(hw_src->ether_addr_octet, &pcap_packet[22], 6);
-		    printf("hw address is %s, ", hw_ntoa(hw_src));
-		    memcpy(&ip_src.s_addr, &pcap_packet[28], 4);
-		    printf("ip address is %s\n", inet_ntoa(ip_src));
+		    printf("O");
 		} else
-		    printf("not an arp reply packet\n");
+		    printf("?");
 		alarm(3); /* timeout after last received packet */
 	    }
 	    break;
@@ -173,53 +163,49 @@ int main (int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	    }
 
-	    for (i = 1; i <= amount; ++i) {
+	    printf("flooding with requests for hw address of ip address %s\n", inet_ntoa (ip_dst));
 
-		printf("request for hw address of ip address %s, ", inet_ntoa (ip_dst));
+	    if (libnet_build_arp(
+		    ARPHRD_ETHER,			/* hardware addr */
+        	    ETHERTYPE_IP,			/* protocol addr */
+        	    ETHER_ADDR_LEN,			/* hardware addr size */
+        	    4,					/* protocol addr size */
+        	    ARPOP_REQUEST,			/* operation type */
+    		    hw_src->ether_addr_octet,		/* sender hardware addr */
+        	    (u_int8_t *)&ip_src.s_addr,		/* sender protocol addr */
+        	    hw_dst->ether_addr_octet,		/* target hardware addr */
+        	    (u_int8_t *)&ip_dst.s_addr,		/* target protocol addr */
+		    NULL,				/* payload */
+        	    0,					/* payload size */
+        	    libnet_handle,			/* libnet context */
+        	    0) == -1)				/* libnet id */
+		libnet_die(libnet_handle);
 
-		if (libnet_build_arp(
-		        ARPHRD_ETHER,			/* hardware addr */
-        	        ETHERTYPE_IP,			/* protocol addr */
-        	        ETHER_ADDR_LEN,			/* hardware addr size */
-        	        4,				/* protocol addr size */
-        	        ARPOP_REQUEST,			/* operation type */
-    			hw_src->ether_addr_octet,	/* sender hardware addr */
-        		(u_int8_t *)&ip_src.s_addr,	/* sender protocol addr */
-        		hw_dst->ether_addr_octet,	/* target hardware addr */
-        		(u_int8_t *)&ip_dst.s_addr,	/* target protocol addr */
-			NULL,				/* payload */
-        		0,				/* payload size */
-        		libnet_handle,			/* libnet context */
-        		0) == -1)			/* libnet id */
-		    libnet_die(libnet_handle);
+	    if (libnet_build_ethernet(
+		    hw_dst->ether_addr_octet,		/* dest eth addr */
+		    hw_src->ether_addr_octet,		/* src eth addr */
+		    ETHERTYPE_ARP,			/* protocol type */
+		    NULL,				/* payload */
+		    0,					/* payload size */
+		    libnet_handle,			/* libnet context */
+		    0) == -1)				/* libnet id */
+		libnet_die(libnet_handle);
 
-		if (libnet_build_ethernet(
-		        hw_dst->ether_addr_octet,	/* dest eth addr */
-			hw_src->ether_addr_octet,	/* src eth addr */
-			ETHERTYPE_ARP,			/* protocol type */
-			NULL,				/* payload */
-			0,				/* payload size */
-			libnet_handle,			/* libnet context */
-			0) == -1)			/* libnet id */
-		    libnet_die(libnet_handle);
+	    if (libnet_adv_cull_packet(libnet_handle, &packet, &packet_size) == -1)
+		libnet_die(libnet_handle);
 
-		if (libnet_adv_cull_packet(libnet_handle, &packet, &packet_size) == -1)
-		    libnet_die(libnet_handle);
+	    libnet_adv_free_packet(libnet_handle, packet);
 
-	        printf("%i bytes to send, ", packet_size);
-	        libnet_adv_free_packet(libnet_handle, packet);
+	    for (;;) {
 
-		usleep(100); /* prevents flooding */
 		if ((status = libnet_write(libnet_handle)) == -1)
-		    libnet_die(libnet_handle);
-		
-		printf("%d bytes sent\n", status);
-		libnet_clear_packet(libnet_handle);
-		
-		/* address increments needs double conversion */
-		ip_dst.s_addr = ntohl(htonl(ip_dst.s_addr) + 1);
+		    printf("!");
+		else
+		    printf(".");
 
 	    }
+
+	    libnet_clear_packet(libnet_handle);
 
 	    printf("waiting for sniffer terminate\n");
 	    

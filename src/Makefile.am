@@ -1,4 +1,6 @@
-sbin_PROGRAMS = arpdiscover arpspoof
+sbin_PROGRAMS = arpdiscover arpflood arppoison arpsniff
 
 arpdiscover_SOURCES = arpdiscover.c
-arpspoof_SOURCES = arpspoof.c
+arpflood_SOURCES = arpflood.c
+arppoison_SOURCES = arppoison.c
+arpsniff_SOURCES = arpsniff.c
