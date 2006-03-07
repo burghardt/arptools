@@ -2,7 +2,7 @@
    ARP Discover Tool - Ethernet scanner based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
    
-   $Id: arpdt.c,v 1.2 2006-03-07 14:10:06 kb Exp $
+   $Id: arpdiscover.c,v 1.1 2006-03-07 14:36:56 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

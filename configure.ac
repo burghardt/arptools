@@ -1,6 +1,6 @@
 AC_INIT([ARP Tools], [1.0.0], [krzysztof@burghardt.pl], [arptools])
 AC_CONFIG_AUX_DIR(build)
-AC_CONFIG_SRCDIR(src/arpdt.c)
+AC_CONFIG_SRCDIR(src/arpdiscover.c)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
 

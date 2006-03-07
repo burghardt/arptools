@@ -1,2 +1,4 @@
-sbin_PROGRAMS = arpdt
-arpdt_SOURCES = arpdt.c
+sbin_PROGRAMS = arpdiscover arpspoof
+
+arpdiscover_SOURCES = arpdiscover.c
+arpspoof_SOURCES = arpspoof.c
