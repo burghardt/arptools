@@ -1,0 +1,13 @@
+Source: arptools
+Section: net
+Priority: optional
+Maintainer: Krzysztof Burghardt <krzysztof@burghardt.pl>
+Build-Depends: debhelper (>= 4.0.0), autotools-dev, libpcap0.8-dev, libnet-dev
+Standards-Version: 3.6.2
+
+Package: arptools
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ARP Tools - Collection of ARP utilities
+ Currently it contains:
+    * arpdt - ARP Discover Tool - Ethernet scanner based on ARP protocol
