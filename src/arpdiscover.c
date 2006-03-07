@@ -2,7 +2,7 @@
    ARP Discover Tool - Ethernet scanner based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
    
-   $Id: arpdiscover.c,v 1.1 2006-03-07 14:36:56 kb Exp $
+   $Id: arpdiscover.c,v 1.2 2006-03-07 14:42:42 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@
 #include <sys/wait.h>
 /* strerror() */
 #include <string.h>
-/* libpcap - http://sourceforge.net/projects/libpcap/ */
+/* libpcap */
 #include <pcap.h>
-/* libnet - http://www.packetfactory.net/libnet */
+/* libnet */
 #include <libnet.h>
 
 void pcap_die (pcap_t *pcap_handle, char *message) {

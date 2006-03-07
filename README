@@ -5,8 +5,8 @@ currently it contains:
 
 To compile it you will need:
 
-  *
-  *
+  * libpcap - http://sourceforge.net/projects/libpcap/
+  * libnet - http://www.packetfactory.net/libnet
 
 --
 Krzysztof Burghardt <krzysztof@burghardt.pl>
