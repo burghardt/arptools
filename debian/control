@@ -10,4 +10,4 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARP Tools - Collection of ARP utilities
  Currently it contains:
-    * arpdiscover (ARP Discover Tool) - Ethernet scanner based on ARP protocol
+    * arpdiscover (ARP Discover) - Ethernet scanner based on ARP protocol
