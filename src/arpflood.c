@@ -1,8 +1,8 @@
 /*
-   ARP Flooder - Ethernet flooder based on ARP protocol
+   ARP Flood - Ethernet flooder based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
 
-   $Id: arpflood.c,v 1.1 2006-03-07 16:25:42 kb Exp $
+   $Id: arpflood.c,v 1.2 2006-03-07 22:25:35 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
