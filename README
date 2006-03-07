@@ -1,4 +1,7 @@
-ARP Tools - Collection of ARP utilities.
+ARP Tools - Collection of ARP utilities,
+currently it contains:
+
+  * arpdt - ARP Discover Tool - Ethernet scanner based on ARP protocol 
 
 --
 Krzysztof Burghardt <krzysztof@burghardt.pl>
