@@ -11,3 +11,5 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARP Tools - Collection of ARP utilities
  Currently it contains:
     * arpdiscover (ARP Discover) - Ethernet scanner based on ARP protocol
+    * arpflood (ARP Flood) - Ethernet flooder based on ARP protocol
+    * arppoison (ARP Poison) - Poison switches MAC address tables

