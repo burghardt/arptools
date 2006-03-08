@@ -2,7 +2,7 @@
    ARP Flood - Ethernet flooder based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
 
-   $Id: arpflood.c,v 1.2 2006-03-07 22:25:35 kb Exp $
+   $Id: arpflood.c,v 1.3 2006-03-08 00:09:53 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -215,8 +215,6 @@ int main (int argc, char **argv) {
 
     libnet_destroy(libnet_handle);
     pcap_close(pcap_handle);
-
-    printf("scanner terminated\n");
 
     return EXIT_SUCCESS;
 }
