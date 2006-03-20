@@ -1,3 +1,7 @@
+2006-03-19  Krzysztof Burghardt
+
+	* configure.ac: check for libnet via libnet-config
+
 2006-03-08  Krzysztof Burghardt
 
 	* configure.ac: bumped to 1.0.0
