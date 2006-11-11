@@ -2,7 +2,7 @@
    ARP Discover - Ethernet scanner based on ARP protocol
    Copyright (C) 2006 Krzysztof Burghardt.
 
-   $Id: arpdiscover.c,v 1.4 2006-03-07 21:51:59 kb Exp $
+   $Id: arpdiscover.c,v 1.5 2006-11-11 22:38:52 kb Exp $
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -158,6 +158,7 @@ int main (int argc, char **argv) {
 		    printf("hw address is %s, ", hw_ntoa(hw_src));
 		    memcpy(&ip_src.s_addr, &pcap_packet[28], 4);
 		    printf("ip address is %s\n", inet_ntoa(ip_src));
+		    fflush(stdout);
 		} else
 		    printf("not an arp reply packet\n");
 		alarm(3); /* timeout after last received packet */
@@ -214,6 +215,7 @@ int main (int argc, char **argv) {
 		    libnet_die(libnet_handle);
 		
 		printf("%d bytes sent\n", status);
+		fflush(stdout);
 		libnet_clear_packet(libnet_handle);
 		
 		/* address increments needs double conversion */

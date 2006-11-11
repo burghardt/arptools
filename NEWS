@@ -13,3 +13,9 @@
  *******************
 
 * Fixed compilation issue.
+
+ *******************
+ 1.0.2 (11 Nov 2006)
+ *******************
+
+* Fixed bug in arpdiscover.
