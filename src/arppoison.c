@@ -37,6 +37,8 @@
 /* timne() */
 #include <time.h>
 
+#define MSIZE 6
+
 void pcap_die (pcap_t *pcap_handle, char *message) {
     fprintf(stderr, "%s: %s\n", message, pcap_geterr(pcap_handle));
     pcap_close(pcap_handle);
@@ -109,11 +111,8 @@ int main (int argc, char **argv) {
 	fprintf(stderr, "%s\n", strerror(errno));
 	exit(EXIT_FAILURE);
     }
-    
-    hw_dst->ether_addr_octet[0] = hw_dst->ether_addr_octet[1] =
-	hw_dst->ether_addr_octet[2] = hw_dst->ether_addr_octet[3] =
-	hw_dst->ether_addr_octet[4] = hw_dst->ether_addr_octet[5] = 0xff;
 
+    memset((void *)&hw_dst->ether_addr_octet, 0xff, MSIZE);
     hw_src->ether_addr_octet[0] = 0x00;
 
     ip_dst.s_addr = 0;
