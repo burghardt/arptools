@@ -3,6 +3,12 @@ ARP Tools
 
 Collection of ARP utilities.
 
+[![Travis-CI](https://travis-ci.org/burghardt/arptools.svg?branch=master)](https://travis-ci.org/burghardt/arptools/)
+[![CircleCI](https://circleci.com/gh/burghardt/arptools/tree/master.svg?style=svg)](https://circleci.com/gh/burghardt/arptools)
+[![Drone.IO](https://drone.io/github.com/burghardt/arptools/status.png)](https://drone.io/github.com/burghardt/arptools)
+[![Coverity](https://scan.coverity.com/projects/6834/badge.svg)](https://scan.coverity.com/projects/6834)
+[![CodeCov](http://codecov.io/github/burghardt/arptools/coverage.svg?branch=master)](http://codecov.io/github/burghardt/arptools/)
+
 Currently it contains:
 
   * arpdiscover (ARP Discover) - Ethernet scanner based on ARP protocol
