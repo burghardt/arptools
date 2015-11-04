@@ -17,3 +17,19 @@ script:
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "KWfii+6rNvMxXQJncTIWxo7iaXGbfI/XJh+qHJxf4i8sUyHdFUpXB+veofhMNLnnEEBKmGby804ksQyl5OWHlOHGJxnLlqDUWYuyIsfVGXVDhNxmJ2h66vJrzi2Oo/vzZj2qlCkkYS+6Q42ATXOaCiRkPMIvaij96ii60gHDBiw4OZU+0px+49GKWeKOjyxk/lSK6Cs6CNG/gMGvggzZuGF6Od/RGA37UxXv66lurG7E4biplQ1txOWnmGI06c+LJGl/iOEN5n26m8ijpbgc5/bT/Oq6xScybolkZ7/11P1EohOH16zqKgNNytsn/065ZcxlhqpV3dli1E8z+dHH0D3phdsBBMEn+M54bRscOMjTZT8nmbuaNXgYT1vqIcdIP/D8C+250Rvvoi3zTCnPru0oFCbi5p0tu0GYxnuTXT1LF80lQh4A5iOzpWfJJn2awaTEA52PGc/dVErOLTCOGz4dCUqBrH2iW3sYdduSrftxr246vnLkh/9YcEYLiaz40lN5j7IiTFWN2X5dlBXNQFpPy9yulSon1uE3ylqVVsUMqSa/ono0FbUPx0fAHO4eEx3hnTuoUxOkY8bn4jTUFofkfBiAO9qSQMpYX1kp2R8tRORPQWtW+arNBBzWd7fG1ogxFZOQcIZ7TMaA/7pXAp9Q4lDsjpyOl7lCQ6pLfdw="
+
+addons:
+  coverity_scan:
+    project:
+      name: "burghardt/arptools"
+      description: "Build submitted via Travis CI"
+    notification_email: krzysztof@burghardt.pl
+    build_command_prepend: "sh autogen.sh ; sh configure ; make clean"
+    build_command: "make -j 4"
+    branch_pattern: master
