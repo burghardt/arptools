@@ -1,0 +1,28 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - checkout
+      - run:
+          name: dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install libpcap-dev libnet-dev
+      - run:
+          name: autogen
+          command: sh autogen.sh
+      - run:
+          name: configure
+          command: sh configure
+      - run:
+          name: build
+          command: make
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
