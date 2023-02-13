@@ -43,6 +43,7 @@
 
 int main (int argc, char **argv) {
     char *interface = NULL;
+    pcap_if_t *pcap_alldevs = NULL;
     libnet_t *libnet_handle = NULL;
     char pcap_error_buffer[PCAP_ERRBUF_SIZE];
     char libnet_error_buffer[LIBNET_ERRBUF_SIZE];
@@ -57,14 +58,9 @@ int main (int argc, char **argv) {
         interface = argv[1];
 
     if (interface == NULL)
-        interface = pcap_lookupdev(pcap_error_buffer);
+        interface = pcap_get_first_interface(&pcap_alldevs, pcap_error_buffer);
 
-    if (interface == NULL) {
-        fprintf(stderr, "pcap_lookupdev: %s\n", pcap_error_buffer);
-        exit(EXIT_FAILURE);
-    }
-
-    printf ("using inteface %s\n", interface);
+    printf ("using interface %s\n", interface);
 
     if ((libnet_handle = libnet_init(LIBNET_LINK_ADV, interface, libnet_error_buffer)) == NULL) {
         fprintf(stderr, "%s", libnet_error_buffer);
@@ -145,6 +141,9 @@ int main (int argc, char **argv) {
     }
 
     libnet_destroy(libnet_handle);
+
+    if(pcap_alldevs != NULL)
+        pcap_freealldevs(pcap_alldevs);
 
     return EXIT_SUCCESS;
 }

@@ -62,3 +62,16 @@ char *hw_ntoa(struct libnet_ether_addr *hw) {
 
     return str;
 }
+
+char *pcap_get_first_interface(pcap_if_t **pcap_alldevs, char *pcap_error_buffer) {
+    if(pcap_findalldevs(pcap_alldevs, pcap_error_buffer)) {
+        fprintf(stderr, "pcap_findalldevs: %s\n", pcap_error_buffer);
+        exit(EXIT_FAILURE);
+    }
+    if(*pcap_alldevs == NULL) {
+        fprintf(stderr, "pcap_findalldevs: no devices found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return (**pcap_alldevs).name;
+}
