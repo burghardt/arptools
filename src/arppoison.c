@@ -57,14 +57,9 @@ int main (int argc, char **argv) {
         interface = argv[1];
 
     if (interface == NULL)
-        interface = pcap_lookupdev(pcap_error_buffer);
+        interface = pcap_get_first_interface(pcap_error_buffer);
 
-    if (interface == NULL) {
-        fprintf(stderr, "pcap_lookupdev: %s\n", pcap_error_buffer);
-        exit(EXIT_FAILURE);
-    }
-
-    printf ("using inteface %s\n", interface);
+    printf ("using interface %s\n", interface);
 
     if ((libnet_handle = libnet_init(LIBNET_LINK_ADV, interface, libnet_error_buffer)) == NULL) {
         fprintf(stderr, "%s", libnet_error_buffer);
