@@ -1,0 +1,25 @@
+name: arptools
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron:  '0 0 * * *'
+
+jobs:
+  main:
+    name: ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+      - name: deps
+        run: |
+          sudo apt update
+          sudo apt install libpcap-dev libnet-dev
+      - name: autogen
+        run: sh autogen.sh
+      - name: configure
+        run: ./configure
+      - name: make
+        run: make -j
