@@ -22,4 +22,4 @@
 void pcap_die (pcap_t *pcap_handle, char *message);
 void libnet_die (libnet_t *libnet_handle);
 char *hw_ntoa(struct libnet_ether_addr *hw);
-char *pcap_get_first_interface(char *pcap_error_buffer);
+char *pcap_get_first_interface(pcap_if_t **pcap_alldevs, char *pcap_error_buffer);

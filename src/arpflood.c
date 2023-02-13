@@ -39,6 +39,7 @@
 
 int main (int argc, char **argv) {
     char *interface = NULL;
+    pcap_if_t *pcap_alldevs = NULL;
     pcap_t *pcap_handle = NULL;
     libnet_t *libnet_handle = NULL;
     char pcap_error_buffer[PCAP_ERRBUF_SIZE];
@@ -64,7 +65,7 @@ int main (int argc, char **argv) {
         interface = argv[2];
 
     if (interface == NULL)
-        interface = pcap_get_first_interface(pcap_error_buffer);
+        interface = pcap_get_first_interface(&pcap_alldevs, pcap_error_buffer);
 
     printf ("using interface %s\n", interface);
 
@@ -182,6 +183,9 @@ int main (int argc, char **argv) {
 
     libnet_destroy(libnet_handle);
     pcap_close(pcap_handle);
+
+    if(pcap_alldevs != NULL)
+        pcap_freealldevs(pcap_alldevs);
 
     return EXIT_SUCCESS;
 }

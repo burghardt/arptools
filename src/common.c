@@ -21,7 +21,6 @@
 
 #define _GNU_SOURCE
 /* standard headers */
-#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -64,26 +63,15 @@ char *hw_ntoa(struct libnet_ether_addr *hw) {
     return str;
 }
 
-char *pcap_get_first_interface(char *pcap_error_buffer) {
-    pcap_if_t *pcap_alldevs;
-
-    if(pcap_findalldevs(&pcap_alldevs, pcap_error_buffer)) {
+char *pcap_get_first_interface(pcap_if_t **pcap_alldevs, char *pcap_error_buffer) {
+    if(pcap_findalldevs(pcap_alldevs, pcap_error_buffer)) {
         fprintf(stderr, "pcap_findalldevs: %s\n", pcap_error_buffer);
         exit(EXIT_FAILURE);
     }
-    if(pcap_alldevs == NULL) {
+    if(*pcap_alldevs == NULL) {
         fprintf(stderr, "pcap_findalldevs: no devices found\n");
         exit(EXIT_FAILURE);
     }
 
-    const size_t len = strlen(pcap_alldevs[0].name);
-    char *result = malloc(len+1);
-    if(result == NULL) {
-        fprintf(stderr, "%s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    memcpy(result, pcap_alldevs[0].name, len+1);
-
-    pcap_freealldevs(pcap_alldevs);
-    return result;
+    return (**pcap_alldevs).name;
 }
