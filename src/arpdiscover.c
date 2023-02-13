@@ -55,6 +55,7 @@ int main (int argc, char **argv) {
     const unsigned char *pcap_packet = NULL;
     pid_t pid;
     int i, status, amount;
+    int timeout = 10;
 
     if (argc < 3) {
         fprintf(stderr, "Usage: %s 1st_dst_ip amount [interface]\n", argv[0]);
@@ -74,7 +75,7 @@ int main (int argc, char **argv) {
 
     printf ("using interface %s\n", interface);
 
-    if ((pcap_handle = pcap_open_live(interface, BUFSIZ, 1, 0, pcap_error_buffer)) == NULL) {
+    if ((pcap_handle = pcap_open_live(interface, BUFSIZ, amount, timeout, pcap_error_buffer)) == NULL) {
         fprintf(stderr, "pcap_open_live: %s\n", pcap_error_buffer);
         exit(EXIT_FAILURE);
     }
@@ -115,7 +116,7 @@ int main (int argc, char **argv) {
             fprintf(stderr, "%s\n", strerror(errno));
             exit(EXIT_FAILURE);
         case 0:
-            alarm(10); /* timeout if no packet arrives */
+            alarm(timeout); /* timeout if no packet arrives */
             for (i = 0; ; ++i) {
                 pcap_packet = pcap_next(pcap_handle, &packet_header);
 
@@ -129,7 +130,6 @@ int main (int argc, char **argv) {
                     fflush(stdout);
                 } else
                     printf("not an arp reply packet\n");
-                alarm(3); /* timeout after last received packet */
             }
             break;
         default:

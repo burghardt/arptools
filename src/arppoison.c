@@ -129,10 +129,13 @@ int main (int argc, char **argv) {
             libnet_adv_free_packet(libnet_handle, packet);
 
 
-            if ((status = libnet_write(libnet_handle)) == -1)
+            if ((status = libnet_write(libnet_handle)) == -1) {
                 printf("!");
-            else
+                fflush(stdout);
+            } else {
                 printf(".");
+                fflush(stdout);
+            }
 
             usleep(100);
 
