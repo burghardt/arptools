@@ -55,6 +55,7 @@ int main (int argc, char **argv) {
     const unsigned char *pcap_packet = NULL;
     pid_t pid;
     int status;
+    int timeout = 10;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s dst_ip [interface]\n", argv[0]);
@@ -69,7 +70,7 @@ int main (int argc, char **argv) {
 
     printf ("using interface %s\n", interface);
 
-    if ((pcap_handle = pcap_open_live(interface, BUFSIZ, 1, 0, pcap_error_buffer)) == NULL) {
+    if ((pcap_handle = pcap_open_live(interface, BUFSIZ, 1, timeout, pcap_error_buffer)) == NULL) {
         fprintf(stderr, "pcap_open_live: %s\n", pcap_error_buffer);
         exit(EXIT_FAILURE);
     }
@@ -110,16 +111,17 @@ int main (int argc, char **argv) {
             fprintf(stderr, "%s\n", strerror(errno));
             exit(EXIT_FAILURE);
         case 0:
-            alarm(10); /* timeout if no packet arrives */
+            alarm(timeout); /* timeout if no packet arrives */
             for (;;) {
                 pcap_packet = pcap_next(pcap_handle, &packet_header);
 
                 if (pcap_packet[20] == 0 && pcap_packet[21] == 2) {
                     printf("O");
+                    fflush(stdout);
                 } else
                     printf("?");
-                alarm(3); /* timeout after last received packet */
-            }
+                    fflush(stdout);
+                }
             break;
         default:
             printf("sniffer fork()ed into background with pid = %i\n", pid);
@@ -166,10 +168,13 @@ int main (int argc, char **argv) {
 
             for (;;) {
 
-                if ((status = libnet_write(libnet_handle)) == -1)
+                if ((status = libnet_write(libnet_handle)) == -1) {
                     printf("!");
-                else
+                    fflush(stdout);
+                } else {
                     printf(".");
+                    fflush(stdout);
+                }
 
             }
 
